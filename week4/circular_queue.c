@@ -1,0 +1,111 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+
+//a) val과 link를 포함하는 노드를 표현하는 nodetype
+typedef struct nodetype {
+	int val;
+	struct nodetype* link;
+}nodetype;
+
+//b) 리스트로 표현된 원형 큐의 타입 linked_circular_queue
+typedef struct {
+	nodetype* rear;
+}linked_circular_queue;
+
+//c) 원형 큐에 대한 포인터 q를 매개변수로 전달받아서 초기화하는 init() 
+void init(linked_circular_queue* q) {
+	q->rear = NULL; //rear==NULL이면 공백상태이다
+} //기존에는 rear==front
+
+//d) 문제 c에서 초기화된 원형 큐에 대한 포인터 q에 대해서 다음과 같은 일력의 연산을 순차적으로 수행
+//각 연산 후의 큐의 내용, rear가 어디를 가리키는지를 큐상에 나타내라.
+
+
+//e C함수 작성
+
+typedef int element;
+
+//큐가 비어 있는지 검사
+int is_empty(linked_circular_queue* q) {
+	return (q->rear == NULL); //맨끝 노드를 가리키는 q->rear가 NULL? 마지막 노드가 없다 -> 노드가 없다
+}
+
+//큐에 노드 삽입
+void enqueue(linked_circular_queue* q, element var) {
+	nodetype* node = (nodetype*)malloc(sizeof(nodetype)); //새 노드를 생성한다
+	node->val = var; //새 노드에 값을 넣는다
+
+	if (is_empty(q)) { //비어있으면 
+		q->rear = node; //rear은 새 노드가 된다
+		node->link = node; //하나밖에 없으므로 전진해봐야 본인이다
+	}
+	else { 
+		node->link = q->rear->link; //새 노드는 첫 번째 노드를 가리킨다
+		q->rear->link = node; //마지막이었던 노드는 새 노드(진짜 마지막 노드(를 가리킨다
+		q->rear = node; //rear는 이제 새 노드이다
+	}
+
+}
+
+element dequeue(linked_circular_queue* q) {
+	if (is_empty(q)) { //비어있으면 
+		printf("큐 공백 상태\n");
+		return -1;
+	}
+	nodetype* front = q->rear->link; //첫 번째 노드
+	element tmp = front->val; //사라질 예정인 노드는 tmp에 저장하여 반환한다!
+
+	if (q->rear == front) { //노드가 하나뿐이면
+		free(front); //삭제하고
+		q->rear = NULL; //노드가 비었으므로 rear은 NULL
+	}
+	else {
+		q->rear->link = front->link; //첫번째 노드를 가리키던 q->rear->link는 이제 두 번째 노드를 가리킨다
+		free(front); //첫번째 노드(였던 것)을 없앤다
+	}
+	return tmp; //값을 반환한다
+}
+
+void print_queue(linked_circular_queue* q) {
+	if (is_empty(q)) { //값이 비어있으면
+		printf("큐 공백 상태"); //출력
+		return; //끝
+	}
+	else {
+		nodetype* p = q->rear->link; //첫 노드이다
+		while (p != q->rear) { //마지막 노드가 되면 종료
+			printf("%d-> ", p->val); //값을 출력한다
+			p = p->link; //다음 노드로 이동한다
+		}
+		printf("%d\n", q->rear->val); //마지막 값이 출력되지 않았으므로 출력
+	}
+}
+
+// f)
+int main(void) {
+	linked_circular_queue* q = (linked_circular_queue*)malloc(sizeof(linked_circular_queue)); //rear도 노드가 필요함
+	init(q); //초기화
+
+
+	enqueue(q, 1);
+	enqueue(q, 2);
+	enqueue(q, 3);
+
+
+	print_queue(q);
+
+	dequeue(q);
+
+	enqueue(q, 4);
+
+	dequeue(q);
+	dequeue(q);
+	dequeue(q);
+
+	print_queue(q);
+
+	enqueue(q, 5);
+
+	return 0;
+}
